@@ -17,7 +17,7 @@ def get_player_data(player_id):
 
         data = response.json()
 
-        # Extract relevant data (add more fields as needed)
+        # Extract player information
         if data.get("people"):
             player = data["people"][0]
             player_data = {
