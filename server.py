@@ -43,5 +43,9 @@ def get_player_data(player_id):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route("/")
+def home():
+    return jsonify({"message": "Welcome to the MLB Server API"})
+
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host='localhost', port=5000, debug=True)
