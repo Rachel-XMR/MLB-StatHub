@@ -1,9 +1,24 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 import requests
 from flask_cors import CORS
+from flask_bcrypt import Bcrypt
+import psycopg2
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__)
-CORS(app)
+
+# Database connection
+url = os.getenv('DATABASE_URL')
+connection = psycopg2.connect(url)
+
+# Encryption
+bcrypt = Bcrypt(app)
+
+# (CORS) configuration
+CORS(app, supports_credentials=True)
 
 @app.route('/player/<int:player_id>', methods=['GET'])
 def get_player_data(player_id):
@@ -42,6 +57,59 @@ def get_player_data(player_id):
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+@app.route("/user/signup", methods=["POST"])
+def signup_user():
+    try:
+        user_data = request.get_json()
+        username = user_data.get("username")
+        password = user_data.get("password")
+        email = user_data.get("email")
+
+        if not all([username, password, email]):
+            return jsonify({"error": "Missing required fields"}), 400
+
+        # Encrypt password
+        hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
+
+        # Store user data in database
+        cur = connection.cursor()
+
+        # Insert user data
+        insert_query = """
+            INSERT INTO user_data (username, email, password)
+            VALUES (%s, %s, %s)
+            RETURNING id, username, email;
+        """
+
+        cur.execute(insert_query, (username, email, hashed_password))
+
+        connection.commit()
+
+        # Fetch a single row from the database
+        new_user = cur.fetchone()
+
+        cur.close()
+
+        return jsonify({
+            "message": "User signed up successfully",
+            "user": {
+                "id": new_user[0],
+                "username": new_user[1],
+                "email": new_user[2]
+            }
+        }), 201
+
+
+    except psycopg2.Error as e:
+        connection.rollback()
+        if e.pgcode == '23505':
+            return jsonify({"error": "Username or email already exists"}), 409
+        return jsonify({"error": "Database error"}), 500
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 
 @app.route("/")
 def home():
