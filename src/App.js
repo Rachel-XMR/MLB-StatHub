@@ -1,11 +1,20 @@
 import React, { useState } from "react";
 import PlayerSelector from "./playerSelector";
+import SignupForm from "./SignupForm";
+import LoginForm from './LoginForm';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
 function App() {
   const [selectedPlayers, setSelectedPlayers] = useState([]);
 
   return (
-    <div className="p-6">
+      <BrowserRouter>
+          <Routes>
+            <Route path="/signup" element={<SignupForm />} />
+            <Route path="/login" element={<LoginForm />} />
+          </Routes>
+      </BrowserRouter>
+    /* <div className="p-6">
       <h1 className="text-2xl font-bold mb-4">Fan Highlights System</h1>
       <PlayerSelector
         selectedPlayers={selectedPlayers}
@@ -19,7 +28,7 @@ function App() {
           ))}
         </ul>
       </div>
-    </div>
+    </div> */
   );
 }
 
