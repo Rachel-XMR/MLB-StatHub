@@ -111,6 +111,51 @@ def signup_user():
         return jsonify({"error": str(e)}), 500
 
 
+@app.route("/user/login", methods=["POST"])
+def login_user():
+    # Fetch the user email and password, hash the password,
+    # compare it with the hashed password from the database
+    try:
+        login_data = request.get_json()
+        email = login_data.get("email")
+        password = login_data.get("password")
+
+        if not all([email, password]):
+            return jsonify({"error": "Missing required fields"}), 400
+
+        # Query database for user with provided email
+        cur = connection.cursor()
+        select_query = """
+                SELECT id, username, email, password
+                FROM user_data
+                WHERE email = %s;
+            """
+
+        cur.execute(select_query, (email,))
+        user = cur.fetchone()
+        cur.close()
+
+        if user is None:
+            return jsonify({"error": "Invalid email or password"}), 401
+
+        # Check if the password provided is correct
+        if not bcrypt.check_password_hash(user[3], password):
+            return jsonify({"error": "Invalid email or password"}), 401
+
+        # If credentials are valid, return success response
+        return jsonify({
+            "message": "Login successful",
+            "user": {
+                "id": user[0],
+                "email": user[2],
+                "username": user[1]
+            }
+        }), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 @app.route("/")
 def home():
     return jsonify({"message": "Welcome to the MLB Server API"})
