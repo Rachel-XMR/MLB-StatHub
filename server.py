@@ -47,9 +47,11 @@ def get_player_data(player_id):
                 "weight": player.get("weight"),
                 "primaryPosition": player.get("primaryPosition", {}).get("name"),
                 "nickName": player.get("nickName", "N/A"),
-                "debutDate": player.get("mlbDebutDate", "N/A"),
+                "mlbDebutDate": player.get("mlbDebutDate", "N/A"),
                 "batSide": player.get("batSide", {}).get("description"),
                 "pitchHand": player.get("pitchHand", {}).get("description"),
+                "strikeZoneTop": player.get("strikeZoneTop"),
+                "strikeZoneBottom": player.get("strikeZoneBottom"),
             }
             return jsonify(player_data), 200
         else:
