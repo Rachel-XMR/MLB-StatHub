@@ -3,6 +3,7 @@ import PlayerSelector from "./playerSelector";
 import SignupForm from "./SignupForm";
 import LoginForm from './LoginForm';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import Dashboard from "./dashboard";
 
 function App() {
   const [selectedPlayers, setSelectedPlayers] = useState([]);
@@ -10,8 +11,9 @@ function App() {
   return (
       <BrowserRouter>
           <Routes>
-            <Route path="/signup" element={<SignupForm />} />
+            <Route path="/" element={<SignupForm />} />
             <Route path="/login" element={<LoginForm />} />
+            <Route path="/dashboard" element={<Dashboard />} />
           </Routes>
       </BrowserRouter>
     /* <div className="p-6">
