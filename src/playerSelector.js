@@ -1,6 +1,5 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
 
-// Function to fetch player data from the API
 const searchPlayerInDBbyID = async (id) => {
   try {
     const response = await fetch(`http://127.0.0.1:5000/player/${id}`);
@@ -18,13 +17,12 @@ const searchPlayerInDBbyID = async (id) => {
   }
 };
 
+
 const PlayerSelector = () => {
-  // Define `selectedPlayers` state
   const [selectedPlayers, setSelectedPlayers] = useState([]);
   const [playerId, setPlayerId] = useState("");
 
   const handleAddPlayer = async () => {
-    // Validate input
     if (!/^\d{6}$/.test(playerId)) {
       alert("Player ID must be a 6-digit number.");
       return;
@@ -32,22 +30,19 @@ const PlayerSelector = () => {
 
     const id = parseInt(playerId, 10);
 
-    // Check for duplicates
     if (selectedPlayers.some((player) => player.id === id)) {
       alert("Player is already selected.");
       return;
     }
 
-    // Fetch player data
     const playerData = await searchPlayerInDBbyID(id);
     if (!playerData) {
       alert("Player not found in the database.");
       return;
     }
 
-    // Add player to the list
     setSelectedPlayers((prev) => [...prev, playerData]);
-    setPlayerId(""); // Clear input field
+    setPlayerId("");
   };
 
   const handleRemovePlayer = (idToRemove) => {
@@ -55,54 +50,79 @@ const PlayerSelector = () => {
   };
 
   return (
-    <div className="p-4 border rounded shadow">
-      <h2 className="text-lg font-bold mb-4">Player Selector</h2>
+    <div className="bg-white rounded-lg shadow-lg p-6 max-w-2xl mx-auto">
+      <h2 className="text-2xl font-bold text-blue-800 mb-6">MLB Player Selector</h2>
 
-      {/* Input Field */}
-      <div className="mb-4">
+      <div className="flex gap-4 mb-8">
         <input
           type="text"
-          placeholder="Enter Player ID"
           value={playerId}
           onChange={(e) => setPlayerId(e.target.value)}
-          className="border p-2 rounded w-full"
+          placeholder="Enter 6-digit Player ID"
+          className="flex-1 px-4 py-2 border-2 border-blue-300 rounded-lg focus:border-blue-500 focus:outline-none"
         />
         <button
           onClick={handleAddPlayer}
-          className="mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition duration-200"
         >
           Add Player
         </button>
       </div>
 
-      {/* Selected Players */}
       <div>
-        <h3 className="text-md font-semibold mb-2">Selected Players:</h3>
+        <h3 className="text-xl font-semibold text-gray-700 mb-4">Selected Players</h3>
         {selectedPlayers.length > 0 ? (
-          <ul>
+          <div className="space-y-4">
             {selectedPlayers.map((player) => (
-              <li key={player.id} className="mb-4 border-b pb-2">
-                <strong>{player.fullName}</strong> (ID: {player.id}) - Position: {player.primaryPosition}
-                <br />
-                Age: {player.currentAge}, Height: {player.height}, Weight: {player.weight}
-                <br />
-                Birthplace: {player.birthCity}, {player.birthCountry}
-                <br />
-                Nickname: {player.nickName || "N/A"}, Debut: {player.debutDate}
-                <br />
-                Batting: {player.batSide}, Pitching: {player.pitchHand}
-                <br />
-                <button
-                  onClick={() => handleRemovePlayer(player.id)}
-                  className="mt-2 px-4 py-1 bg-red-500 text-white rounded hover:bg-red-600"
-                >
-                  Remove
-                </button>
-              </li>
+              <div
+                key={player.id}
+                className="bg-gray-50 rounded-lg p-4 border-l-4 border-blue-500 hover:shadow-md transition duration-200"
+              >
+                <div className="flex justify-between items-start">
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <h4 className="text-lg font-bold text-blue-900">{player.fullName}</h4>
+                      <span className="text-sm text-gray-500">#{player.id}</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-x-8 gap-y-2 text-sm">
+                      <p><span className="font-semibold">Position:</span> {player.primaryPosition}</p>
+                      <p><span className="font-semibold">Number:</span> #{player.primaryNumber}</p>
+                      <p><span className="font-semibold">Debut Date:</span> {player.mlbDebutDate}</p>
+                      <p><span className="font-semibold">Age:</span> {player.currentAge}</p>
+                      <p><span className="font-semibold">Height:</span> {player.height}</p>
+                      <p><span className="font-semibold">Weight:</span> {player.weight} lbs</p>
+                      <p><span className="font-semibold">Batting:</span> {player.batSide}</p>
+                      <p><span className="font-semibold">Pitching:</span> {player.pitchHand}</p>
+                      <p className="col-span-2">
+                        <span className="font-semibold">From:</span> {player.birthCity}, {player.birthCountry}
+                      </p>
+                      {player.nickName && (
+                          <p className="col-span-2">
+                            <span className="font-semibold">Nickname:</span> {player.nickName}
+                          </p>
+                      )}
+                      {player.strikeZoneTop && player.strikeZoneBottom && (
+                          <p className="col-span-2">
+                            <span
+                                className="font-semibold">Strike Zone:</span> {player.strikeZoneBottom.toFixed(2)} - {player.strikeZoneTop.toFixed(2)}
+                          </p>
+                      )}
+                    </div>
+                  </div>
+                  <button
+                      onClick={() => handleRemovePlayer(player.id)}
+                      className="bg-red-500 text-white px-4 py-1 rounded hover:bg-red-600 transition duration-200 text-sm"
+                  >
+                    Remove
+                  </button>
+                </div>
+              </div>
             ))}
-          </ul>
+          </div>
         ) : (
-          <p>No players selected yet.</p>
+            <p className="text-gray-500 text-center py-8 bg-gray-50 rounded-lg">
+              No players selected. Add players using their MLB ID.
+            </p>
         )}
       </div>
     </div>
