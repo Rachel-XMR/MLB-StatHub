@@ -137,6 +137,11 @@ const SignupForm = () => {
       );
 
       if (response.status === 201) {
+        const { token } = response.data;
+
+        // Store the JWT token in localStorage
+        localStorage.setItem("authToken", token);
+
         setSuccess(true);
         // If the response is successful, clear the fields
         setFormData({
