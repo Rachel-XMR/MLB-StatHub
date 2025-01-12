@@ -5,6 +5,8 @@ from flask_bcrypt import Bcrypt
 import psycopg2
 import os
 from dotenv import load_dotenv
+import jwt
+from datetime import datetime, timezone, timedelta
 
 load_dotenv()
 
@@ -13,6 +15,10 @@ app = Flask(__name__)
 # Database connection
 url = os.getenv('DATABASE_URL')
 connection = psycopg2.connect(url)
+
+# JWT configuration
+SECRET_KEY = os.getenv("JWT_SECRET_KEY")
+TOKEN_EXPIRATION_TIME = 3600
 
 # Encryption
 bcrypt = Bcrypt(app)
@@ -86,13 +92,19 @@ def signup_user():
         """
 
         cur.execute(insert_query, (username, email, hashed_password))
-
         connection.commit()
-
-        # Fetch a single row from the database
         new_user = cur.fetchone()
-
         cur.close()
+
+        # Generate JWT token
+        token = jwt.encode(
+            {
+                "user_id": new_user[0],
+                "exp": datetime.now(timezone.utc) + timedelta(seconds=TOKEN_EXPIRATION_TIME),
+            },
+            SECRET_KEY,
+            algorithm="HS256",
+        )
 
         return jsonify({
             "message": "User signed up successfully",
@@ -100,7 +112,8 @@ def signup_user():
                 "id": new_user[0],
                 "username": new_user[1],
                 "email": new_user[2]
-            }
+            },
+            "token": token
         }), 201
 
 
@@ -144,6 +157,16 @@ def login_user():
         if not bcrypt.check_password_hash(user[3], password):
             return jsonify({"error": "Invalid email or password"}), 401
 
+
+        token = jwt.encode(
+            {
+                "user_id": user[0],
+                "exp": datetime.now(timezone.utc) + timedelta(seconds=TOKEN_EXPIRATION_TIME),
+            },
+            SECRET_KEY,
+            algorithm="HS256",
+        )
+
         # If credentials are valid, return success response
         return jsonify({
             "message": "Login successful",
@@ -151,11 +174,27 @@ def login_user():
                 "id": user[0],
                 "email": user[2],
                 "username": user[1]
-            }
+            },
+            "token": token
         }), 200
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+@app.route("/verify-token", methods=["POST"])
+def verify_token():
+    token = request.headers.get("Authorization")
+    if not token:
+        return jsonify({"error": "Missing token"}), 401
+
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+        return jsonify({"message": "Token is valid", "user_id": payload["user_id"]}), 200
+    except jwt.ExpiredSignatureError:
+        return jsonify({"error": "Token has expired"}), 401
+    except jwt.InvalidTokenError:
+        return jsonify({"error": "Invalid token"}), 401
 
 
 @app.route("/")
