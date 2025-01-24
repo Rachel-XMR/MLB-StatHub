@@ -316,7 +316,7 @@ def add_player():
 
 @app.route("/user/players/<int:player_id>", methods=["DELETE"])
 def remove_player(player_id):
-    token = request.headers.get("Authorization")
+    token = request.headers.get("Authorization", "").split("Bearer ")[-1].strip()
     if not token:
         return jsonify({"error": "Missing token"}), 401
 
@@ -331,7 +331,7 @@ def remove_player(player_id):
             SET player_id = array_remove(player_id, %s)
             WHERE id = %s;
         """
-        cur.execute(delete_query, (user_id, player_id))
+        cur.execute(delete_query, (player_id, user_id))
         connection.commit()
         cur.close()
 
