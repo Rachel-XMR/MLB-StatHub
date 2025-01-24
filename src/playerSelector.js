@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { fetchProtectedData } from './api';
 
 const searchPlayerInDBbyID = async (id) => {
   try {
@@ -21,37 +22,125 @@ const searchPlayerInDBbyID = async (id) => {
 const PlayerSelector = () => {
   const [selectedPlayers, setSelectedPlayers] = useState([]);
   const [playerId, setPlayerId] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const getToken = () => {
+    const token = localStorage.getItem('authToken');
+    return token;
+  }
+
+  // Fetch user's selected players
+  useEffect(() => {
+  const fetchUserPlayers = async () => {
+    try {
+      const players = await fetchProtectedData('http://127.0.0.1:5000/user/players');
+      setSelectedPlayers(players);
+    } catch (err) {
+      if (err.response && err.response.status === 401) {
+        localStorage.removeItem('authToken');
+        setError('Please log in again');
+      } else {
+        setError(err.message || 'Failed to load your players. Please try again later.');
+      }
+      console.error('Error:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const token = localStorage.getItem('authToken');
+    if (token) {
+      fetchUserPlayers();
+    } else {
+      setLoading(false);
+    }
+  }, []);
 
   const handleAddPlayer = async () => {
+    const token = getToken();
+    if (!token) {
+      setError('Please log in to add players.');
+      return;
+    }
+
     if (!/^\d{6}$/.test(playerId)) {
-      alert("Player ID must be a 6-digit number.");
+      setError("Player ID must be a 6-digit number.");
       return;
     }
 
     const id = parseInt(playerId, 10);
 
     if (selectedPlayers.some((player) => player.id === id)) {
-      alert("Player is already selected.");
+      setError("Player is already selected.");
       return;
     }
 
-    const playerData = await searchPlayerInDBbyID(id);
-    if (!playerData) {
-      alert("Player not found in the database.");
-      return;
+    try {
+      // Check if player exists in MLB database
+      const newPlayerData = await searchPlayerInDBbyID(id);
+      if (!newPlayerData) {
+        setError("Player not found.");
+        return;
+      }
+
+      // Add player to user's list
+      await fetchProtectedData('http://127.0.0.1:5000/user/players', {
+        method: 'POST',
+        body: JSON.stringify({ player_id: playerId }),
+      });
+
+      // Update local state with the new player
+      setSelectedPlayers([...selectedPlayers, newPlayerData]);
+      setPlayerId('');
+      setError(null);
+    } catch (err) {
+      if (err.response && err.response.status === 401) {
+        localStorage.removeItem('authToken');
+        setError('Please log in again');
+      } else {
+        setError(err.message || 'Failed to add player. Please try again later.');
+      }
+      console.error('Error:', err);
+      }
+    };
+
+  const handleRemovePlayer = async (playerId) => {
+    try {
+      await fetchProtectedData(`http://127.0.0.1:5000/user/players/${playerId}`, {
+        method: 'DELETE',
+      });
+      // Update the local state
+      setSelectedPlayers(selectedPlayers.filter(player => player.id !== playerId));
+    } catch (err) {
+      if (err.response && err.response.status === 401) {
+        localStorage.removeItem('authToken');
+        setError('Please log in again');
+      } else {
+        setError(err.message || 'Failed to remove player. Please try again later.');
+      }
+      console.error('Error:', err);
     }
-
-    setSelectedPlayers((prev) => [...prev, playerData]);
-    setPlayerId("");
   };
 
-  const handleRemovePlayer = (idToRemove) => {
-    setSelectedPlayers((prev) => prev.filter((player) => player.id !== idToRemove));
-  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white rounded-lg shadow-lg p-6 max-w-2xl mx-auto">
       <h2 className="text-2xl font-bold text-blue-800 mb-6">MLB Player Selector</h2>
+
+      {error && (
+        <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-lg">
+          {error}
+        </div>
+      )}
 
       <div className="flex gap-4 mb-8">
         <input
@@ -97,21 +186,20 @@ const PlayerSelector = () => {
                         <span className="font-semibold">From:</span> {player.birthCity}, {player.birthCountry}
                       </p>
                       {player.nickName && (
-                          <p className="col-span-2">
-                            <span className="font-semibold">Nickname:</span> {player.nickName}
-                          </p>
+                        <p className="col-span-2">
+                          <span className="font-semibold">Nickname:</span> {player.nickName}
+                        </p>
                       )}
                       {player.strikeZoneTop && player.strikeZoneBottom && (
-                          <p className="col-span-2">
-                            <span
-                                className="font-semibold">Strike Zone:</span> {player.strikeZoneBottom.toFixed(2)} - {player.strikeZoneTop.toFixed(2)}
-                          </p>
+                        <p className="col-span-2">
+                          <span className="font-semibold">Strike Zone:</span> {player.strikeZoneBottom.toFixed(2)} - {player.strikeZoneTop.toFixed(2)}
+                        </p>
                       )}
                     </div>
                   </div>
                   <button
-                      onClick={() => handleRemovePlayer(player.id)}
-                      className="bg-red-500 text-white px-4 py-1 rounded hover:bg-red-600 transition duration-200 text-sm"
+                    onClick={() => handleRemovePlayer(player.id)}
+                    className="bg-red-500 text-white px-4 py-1 rounded hover:bg-red-600 transition duration-200 text-sm"
                   >
                     Remove
                   </button>
@@ -120,9 +208,9 @@ const PlayerSelector = () => {
             ))}
           </div>
         ) : (
-            <p className="text-gray-500 text-center py-8 bg-gray-50 rounded-lg">
-              No players selected. Add players using their MLB ID.
-            </p>
+          <p className="text-gray-500 text-center py-8 bg-gray-50 rounded-lg">
+            No players selected. Add players using their MLB ID.
+          </p>
         )}
       </div>
     </div>

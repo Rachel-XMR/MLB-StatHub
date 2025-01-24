@@ -197,6 +197,155 @@ def verify_token():
         return jsonify({"error": "Invalid token"}), 401
 
 
+@app.route("/user/players", methods=["GET"])
+def get_user_players():
+    token = request.headers.get("Authorization", "").split("Bearer ")[-1].strip()
+    if not token:
+        return jsonify({"error": "Missing token"}), 401
+
+    try:
+        # Verify token and get user_id
+        payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+        user_id = payload["user_id"]
+
+        # Query database for user's selected players
+        cur = connection.cursor()
+        select_query = """
+            SELECT unnest(player_id) as player_id
+            FROM user_data 
+            WHERE id = %s
+            ORDER BY added_at DESC;
+        """
+        cur.execute(select_query, (user_id,))
+        player_ids = [row[0] for row in cur.fetchall()]
+        cur.close()
+
+        players = []
+        for player_id in player_ids:
+            api_url = f"https://statsapi.mlb.com/api/v1/people/{player_id}/"
+            response = requests.get(api_url)
+            if response.status_code == 200:
+                data = response.json()
+                if data.get("people"):
+                    player = data["people"][0]
+                    players.append({
+                        "id": player.get("id"),
+                        "fullName": player.get("fullName"),
+                        "primaryNumber": player.get("primaryNumber"),
+                        "birthDate": player.get("birthDate"),
+                        "currentAge": player.get("currentAge"),
+                        "birthCity": player.get("birthCity"),
+                        "birthCountry": player.get("birthCountry"),
+                        "height": player.get("height"),
+                        "weight": player.get("weight"),
+                        "primaryPosition": player.get("primaryPosition", {}).get("name"),
+                        "nickName": player.get("nickName", "N/A"),
+                        "mlbDebutDate": player.get("mlbDebutDate", "N/A"),
+                        "batSide": player.get("batSide", {}).get("description"),
+                        "pitchHand": player.get("pitchHand", {}).get("description"),
+                        "strikeZoneTop": player.get("strikeZoneTop"),
+                        "strikeZoneBottom": player.get("strikeZoneBottom")
+                    })
+
+        return jsonify(players), 200
+
+    except jwt.ExpiredSignatureError:
+        return jsonify({"error": "Token has expired"}), 401
+    except jwt.InvalidTokenError:
+        return jsonify({"error": "Invalid token"}), 401
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/user/players", methods=["POST"])
+def add_player():
+    token = request.headers.get("Authorization", "").split("Bearer ")[-1].strip()
+    if not token:
+        return jsonify({"error": "Missing token"}), 401
+
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+        user_id = payload["user_id"]
+
+        player_data = request.get_json()
+        player_id = player_data.get("player_id")
+
+        # Ensure player_id is converted to an integer
+        try:
+            player_id = int(player_id)
+        except (ValueError, TypeError):
+            return jsonify({"error": "Invalid player ID"}), 400
+
+        # Check if player already exists for user
+        cur = connection.cursor()
+        check_query = """
+            SELECT EXISTS(
+                SELECT 1 
+                FROM user_data 
+                WHERE id = %s AND %s = ANY(player_id)
+            );
+        """
+        cur.execute(check_query, (user_id, player_id))
+        exists = cur.fetchone()[0]
+
+        if exists:
+            cur.close()
+            return jsonify({"error": "Player already added"}), 409
+
+        # Add player to user's list
+        insert_query = """
+            UPDATE user_data 
+            SET player_id = array_append(COALESCE(player_id, ARRAY[]::INTEGER[]), %s),
+                added_at = NOW()
+            WHERE id = %s;
+        """
+        cur.execute(insert_query, (player_id, user_id))
+        connection.commit()
+        cur.close()
+
+        return jsonify({"message": "Player added successfully"}), 201
+
+    except jwt.ExpiredSignatureError:
+        return jsonify({"error": "Token has expired"}), 401
+    except jwt.InvalidTokenError:
+        return jsonify({"error": "Invalid token"}), 401
+    except Exception as e:
+        connection.rollback()
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/user/players/<int:player_id>", methods=["DELETE"])
+def remove_player(player_id):
+    token = request.headers.get("Authorization")
+    if not token:
+        return jsonify({"error": "Missing token"}), 401
+
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+        user_id = payload["user_id"]
+
+        # Remove player from user's list
+        cur = connection.cursor()
+        delete_query = """
+            UPDATE user_data 
+            SET player_id = array_remove(player_id, %s)
+            WHERE id = %s;
+        """
+        cur.execute(delete_query, (user_id, player_id))
+        connection.commit()
+        cur.close()
+
+        return jsonify({"message": "Player removed successfully"}), 200
+
+    except jwt.ExpiredSignatureError:
+        return jsonify({"error": "Token has expired"}), 401
+    except jwt.InvalidTokenError:
+        return jsonify({"error": "Invalid token"}), 401
+    except Exception as e:
+        connection.rollback()
+        return jsonify({"error": str(e)}), 500
+
+
 @app.route("/")
 def home():
     return jsonify({"message": "Welcome to the MLB Server API"})
