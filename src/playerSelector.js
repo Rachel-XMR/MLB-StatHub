@@ -19,11 +19,14 @@ const searchPlayerInDBbyID = async (id) => {
 };
 
 
+// To-do (delete after completion):
+// Use the get_player_image function from flask api to fetch a dictionary of {player id: headshot_image}
 const PlayerSelector = () => {
   const [selectedPlayers, setSelectedPlayers] = useState([]);
   const [playerId, setPlayerId] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [playerImages, setPlayerImages] = useState({});
 
   const getToken = () => {
     const token = localStorage.getItem('authToken');
@@ -52,6 +55,7 @@ const PlayerSelector = () => {
   const token = localStorage.getItem('authToken');
     if (token) {
       fetchUserPlayers();
+      fetchPlayerImages();
     } else {
       setLoading(false);
     }
@@ -123,6 +127,16 @@ const PlayerSelector = () => {
     }
   };
 
+  // Fetch headshot image for each player
+  const fetchPlayerImages = async () => {
+    try {
+      const images = await fetchProtectedData('http://127.0.0.1:5000/user/players/images');
+      setPlayerImages(images);
+    } catch (err) {
+      console.error('Failed to fetch player images:', err);
+    }
+  };
+
 
   if (loading) {
     return (
@@ -163,12 +177,16 @@ const PlayerSelector = () => {
         {selectedPlayers.length > 0 ? (
           <div className="space-y-4">
             {selectedPlayers.map((player) => (
-              <div
-                key={player.id}
-                className="bg-gray-50 rounded-lg p-4 border-l-4 border-blue-500 hover:shadow-md transition duration-200"
-              >
+              <div key={player.id} className="bg-gray-50 rounded-lg p-4 border-l-4 border-blue-500 hover:shadow-md transition duration-200">
                 <div className="flex justify-between items-start">
-                  <div className="space-y-2">
+                  {playerImages[player.id] && (
+                    <img
+                      src={playerImages[player.id]}
+                      alt={`${player.fullName} headshot`}
+                      className="w-24 h-24 rounded-full object-cover mr-4"
+                    />
+                  )}
+                  <div className="flex-1 space-y-2">
                     <div className="flex items-center gap-2">
                       <h4 className="text-lg font-bold text-blue-900">{player.fullName}</h4>
                       <span className="text-sm text-gray-500">#{player.id}</span>
@@ -197,10 +215,7 @@ const PlayerSelector = () => {
                       )}
                     </div>
                   </div>
-                  <button
-                    onClick={() => handleRemovePlayer(player.id)}
-                    className="bg-red-500 text-white px-4 py-1 rounded hover:bg-red-600 transition duration-200 text-sm"
-                  >
+                  <button onClick={() => handleRemovePlayer(player.id)} className="bg-red-500 text-white px-4 py-1 rounded hover:bg-red-600 transition duration-200 text-sm">
                     Remove
                   </button>
                 </div>

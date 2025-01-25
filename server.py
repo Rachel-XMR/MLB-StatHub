@@ -182,6 +182,44 @@ def login_user():
         return jsonify({"error": str(e)}), 500
 
 
+@app.route("/user/players/images", methods=["GET"])
+def get_player_images():
+    # Fetch the headshot image of each player from the database
+    token = request.headers.get("Authorization", "").split("Bearer ")[-1].strip()
+    if not token:
+        return jsonify({"error": "Missing token"}), 401
+
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+        user_id = payload["user_id"]
+
+        # Get user's player IDs
+        cur = connection.cursor()
+        select_query = """
+            SELECT unnest(player_id) as player_id
+            FROM user_data 
+            WHERE id = %s
+            ORDER BY added_at DESC;
+        """
+        cur.execute(select_query, (user_id,))
+        player_ids = [row[0] for row in cur.fetchall()]
+        cur.close()
+
+        # Fetch headshot URLs
+        player_images = {}
+        for player_id in player_ids:
+            player_images[player_id] = f'https://securea.mlb.com/mlb/images/players/head_shot/{player_id}.jpg'
+
+        return jsonify(player_images), 200
+
+    except jwt.ExpiredSignatureError:
+        return jsonify({"error": "Token has expired"}), 401
+    except jwt.InvalidTokenError:
+        return jsonify({"error": "Invalid token"}), 401
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 @app.route("/verify-token", methods=["POST"])
 def verify_token():
     token = request.headers.get("Authorization")
