@@ -1,6 +1,7 @@
 import React from 'react';
 import PlayerSelector from './playerSelector';
 import Logout from './Logout';
+import liveFeed from './livefeed';
 
 const Dashboard = () => {
   return (
