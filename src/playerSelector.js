@@ -19,8 +19,6 @@ const searchPlayerInDBbyID = async (id) => {
 };
 
 
-// To-do (delete after completion):
-// Use the get_player_image function from flask api to fetch a dictionary of {player id: headshot_image}
 const PlayerSelector = () => {
   const [selectedPlayers, setSelectedPlayers] = useState([]);
   const [playerId, setPlayerId] = useState("");
