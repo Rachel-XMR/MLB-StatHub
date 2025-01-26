@@ -220,6 +220,38 @@ def get_player_images():
         return jsonify({"error": str(e)}), 500
 
 
+@app.route("/user/get_username", methods=["GET"])
+def get_username():
+    # Fetch the username of the user associated with the provided JWT token
+    token = request.headers.get("Authorization", "").split("Bearer ")[-1].strip()
+    if not token:
+        return jsonify({"error": "Missing token"}), 401
+
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+        user_id = payload["user_id"]
+
+        # Query database to get username
+        cur = connection.cursor()
+        select_query = """
+            SELECT username 
+            FROM user_data 
+            WHERE id = %s;
+        """
+        cur.execute(select_query, (user_id,))
+        username = cur.fetchone()[0]
+        cur.close()
+
+        return jsonify({"username": username}), 200
+
+    except jwt.ExpiredSignatureError:
+        return jsonify({"error": "Token has expired"}), 401
+    except jwt.InvalidTokenError:
+        return jsonify({"error": "Invalid token"}), 401
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 @app.route("/verify-token", methods=["POST"])
 def verify_token():
     token = request.headers.get("Authorization")
