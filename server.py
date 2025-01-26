@@ -1,7 +1,7 @@
 from flask import Flask, jsonify, request
 import requests
 from flask_cors import CORS
-from flask_bcrypt import Bcrypt
+from flask_bcrypt import Bcrypt, check_password_hash, generate_password_hash
 import psycopg2
 import os
 from dotenv import load_dotenv
@@ -79,7 +79,7 @@ def signup_user():
             return jsonify({"error": "Missing required fields"}), 400
 
         # Encrypt password
-        hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
+        hashed_password = generate_password_hash(password).decode('utf-8')
 
         # Store user data in database
         cur = connection.cursor()
@@ -154,7 +154,7 @@ def login_user():
             return jsonify({"error": "Invalid email or password"}), 401
 
         # Check if the password provided is correct
-        if not bcrypt.check_password_hash(user[3], password):
+        if not check_password_hash(user[3], password):
             return jsonify({"error": "Invalid email or password"}), 401
 
 
@@ -406,6 +406,57 @@ def remove_player(player_id):
         cur.close()
 
         return jsonify({"message": "Player removed successfully"}), 200
+
+    except jwt.ExpiredSignatureError:
+        return jsonify({"error": "Token has expired"}), 401
+    except jwt.InvalidTokenError:
+        return jsonify({"error": "Invalid token"}), 401
+    except Exception as e:
+        connection.rollback()
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/user/change_password", methods=["POST"])
+def change_password():
+    token = request.headers.get("Authorization", "").split("Bearer ")[-1].strip()
+    if not token:
+        return jsonify({"error": "Missing token"}), 401
+
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+        user_id = payload["user_id"]
+
+        # Retrieve old & new password
+        password_data = request.get_json()
+        current_password = password_data.get("current_password")
+        new_password = password_data.get("new_password")
+
+        # Verify current password
+        cur = connection.cursor()
+        select_query = """
+            SELECT password 
+            FROM user_data 
+            WHERE id = %s;
+        """
+        cur.execute(select_query, (user_id,))
+        stored_password = cur.fetchone()[0]
+
+        if not check_password_hash(stored_password, current_password):
+            cur.close()
+            return jsonify({"error": "Incorrect current password"}), 401
+
+        # Update password
+        update_query = """
+            UPDATE user_data 
+            SET password = %s
+            WHERE id = %s;
+        """
+        new_hashed_password = generate_password_hash(new_password).decode('utf-8')
+        cur.execute(update_query, (new_hashed_password, user_id))
+        connection.commit()
+        cur.close()
+
+        return jsonify({"message": "Password changed successfully"}), 200
 
     except jwt.ExpiredSignatureError:
         return jsonify({"error": "Token has expired"}), 401
