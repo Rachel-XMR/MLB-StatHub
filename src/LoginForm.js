@@ -233,9 +233,7 @@ const LoginForm = () => {
           <h1 className="text-2xl font-bold text-green-600 mb-4">Success!</h1>
           <p className="text-gray-600 mb-4">You have successfully logged in.</p>
 
-          <Link to="/dashboard"
-            className="text-blue-500 hover:underline font-medium"
-          >
+          <Link to="/dashboard" className="text-blue-500 hover:underline font-medium">
             Go to Home
           </Link>
         </div>
