@@ -19,6 +19,7 @@ The app supports multiple languages (English, Spanish, Japanese) and allows user
 ### API Requests
 - **Axios**: For making HTTP requests to external APIs.
 - **Google Cloud API**: For accessing MLB data through Google's cloud services and data feeds.
+- **Cloud Translation API**: For translating webpages
 
 ### State Management
 - **React Context API** (or **Redux**): For managing application state across components.
