@@ -1,9 +1,14 @@
 {
   "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
     "@fortawesome/free-solid-svg-icons": "^6.7.2",
     "@fortawesome/react-fontawesome": "^0.2.2",
+    "@google-cloud/translate": "^8.5.0",
+    "@mui/material": "^6.4.1",
     "@radix-ui/react-select": "^2.1.5",
     "axios": "^1.7.9",
+    "dotenv": "^16.4.7",
     "google-translate-api-browser": "^5.0.0",
     "lucide-react": "^0.469.0",
     "react": "^19.0.0",
