@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { fetchProtectedData } from './api';
+import translateText  from './translationServer';
 
 const searchPlayerInDBbyID = async (id) => {
   try {
@@ -19,12 +20,14 @@ const searchPlayerInDBbyID = async (id) => {
 };
 
 
-const PlayerSelector = () => {
+const PlayerSelector = ({ language }) => {
   const [selectedPlayers, setSelectedPlayers] = useState([]);
   const [playerId, setPlayerId] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [playerImages, setPlayerImages] = useState({});
+  const [translatedText, setTranslatedText] = useState({});
+  const [imagesLoaded, setImagesLoaded] = useState(false);
 
   const getToken = () => {
     const token = localStorage.getItem('authToken');
@@ -33,10 +36,11 @@ const PlayerSelector = () => {
 
   // Fetch user's selected players
   useEffect(() => {
-  const fetchUserPlayers = async () => {
+  const fetchUserPlayersAndImages = async () => {
     try {
       const players = await fetchProtectedData('http://127.0.0.1:5000/user/players');
       setSelectedPlayers(players);
+      await fetchPlayerImages();
     } catch (err) {
       if (err.response && err.response.status === 401) {
         localStorage.removeItem('authToken');
@@ -52,8 +56,7 @@ const PlayerSelector = () => {
 
   const token = localStorage.getItem('authToken');
     if (token) {
-      fetchUserPlayers();
-      fetchPlayerImages();
+      fetchUserPlayersAndImages();
     } else {
       setLoading(false);
     }
@@ -129,11 +132,65 @@ const PlayerSelector = () => {
   const fetchPlayerImages = async () => {
     try {
       const images = await fetchProtectedData('http://127.0.0.1:5000/user/players/images');
+      const newImages = {};
+      for (const playerId in images) {
+        newImages[playerId] = images[playerId];
+      }
+
       setPlayerImages(images);
+      setImagesLoaded(true);
     } catch (err) {
       console.error('Failed to fetch player images:', err);
     }
   };
+
+  const translateContent = async () => {
+    try {
+      const translations = await Promise.all([ // Translate all texts concurrently for efficiency
+        translateText("MLB Player Selector", language),
+        translateText("Add Player", language),
+        translateText("Selected Players", language),
+        translateText("Position:", language),
+        translateText("Number:", language),
+        translateText("Debut Date:", language),
+        translateText("Age:", language),
+        translateText("Height:", language),
+        translateText("Weight:", language),
+        translateText("Batting:", language),
+        translateText("Pitching:", language),
+        translateText("From:", language),
+        translateText("Nickname:", language),
+        translateText("Strike Zone:", language),
+        translateText("No players selected. Add players using their MLB ID.", language),
+        translateText("Remove", language)
+      ]);
+
+      setTranslatedText({
+        mlb_selector: translations[0],
+        addPlayerButton: translations[1],
+        selected_players: translations[2],
+        position: translations[3],
+        number: translations[4],
+        debutDate: translations[5],
+        age: translations[6],
+        height: translations[7],
+        weight: translations[8],
+        batting: translations[9],
+        pitching: translations[10],
+        from: translations[11],
+        nickname: translations[12],
+        strikeZone: translations[13],
+        noPlayers: translations[14],
+        remove: translations[15],
+      });
+    } catch (error) {
+      console.error('Translation error:', error);
+    }
+  };
+
+  useEffect(() => {
+    translateContent();
+  }, [language]);
 
 
   if (loading) {
@@ -146,7 +203,7 @@ const PlayerSelector = () => {
 
   return (
     <div className="bg-white rounded-lg shadow-lg p-6 max-w-2xl mx-auto">
-      <h2 className="text-2xl font-bold text-blue-800 mb-6">MLB Player Selector</h2>
+      <h2 className="text-2xl font-bold text-blue-800 mb-6">{translatedText.mlb_selector || "MLB Player Selector"}</h2>
 
       {error && (
         <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-lg">
@@ -166,18 +223,18 @@ const PlayerSelector = () => {
           onClick={handleAddPlayer}
           className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition duration-200"
         >
-          Add Player
+          {translatedText.addPlayerButton || "Add Player"}
         </button>
       </div>
 
       <div>
-        <h3 className="text-xl font-semibold text-gray-700 mb-4">Selected Players</h3>
+        <h3 className="text-xl font-semibold text-gray-700 mb-4">{translatedText.selected_players || "Selected Players"}</h3>
         {selectedPlayers.length > 0 ? (
           <div className="space-y-4">
             {selectedPlayers.map((player) => (
               <div key={player.id} className="bg-gray-50 rounded-lg p-4 border-l-4 border-blue-500 hover:shadow-md transition duration-200">
                 <div className="flex justify-between items-start">
-                  {playerImages[player.id] && (
+                  {playerImages[player.id] && imagesLoaded &&(
                     <img
                       src={playerImages[player.id]}
                       alt={`${player.fullName} headshot`}
@@ -190,31 +247,31 @@ const PlayerSelector = () => {
                       <span className="text-sm text-gray-500">#{player.id}</span>
                     </div>
                     <div className="grid grid-cols-2 gap-x-8 gap-y-2 text-sm">
-                      <p><span className="font-semibold">Position:</span> {player.primaryPosition}</p>
-                      <p><span className="font-semibold">Number:</span> #{player.primaryNumber}</p>
-                      <p><span className="font-semibold">Debut Date:</span> {player.mlbDebutDate}</p>
-                      <p><span className="font-semibold">Age:</span> {player.currentAge}</p>
-                      <p><span className="font-semibold">Height:</span> {player.height}</p>
-                      <p><span className="font-semibold">Weight:</span> {player.weight} lbs</p>
-                      <p><span className="font-semibold">Batting:</span> {player.batSide}</p>
-                      <p><span className="font-semibold">Pitching:</span> {player.pitchHand}</p>
+                      <p><span className="font-semibold">{translatedText.position || "Position:"}</span> {player.primaryPosition}</p>
+                      <p><span className="font-semibold">{translatedText.number || "Number:"}</span> #{player.primaryNumber}</p>
+                      <p><span className="font-semibold">{translatedText.debutDate || "Debut Date:"}</span> {player.mlbDebutDate}</p>
+                      <p><span className="font-semibold">{translatedText.age || "Age:"}</span> {player.currentAge}</p>
+                      <p><span className="font-semibold">{translatedText.height || "Height:"}</span> {player.height}</p>
+                      <p><span className="font-semibold">{translatedText.weight || "Weight:"}</span> {player.weight} lbs</p>
+                      <p><span className="font-semibold">{translatedText.batting || "Batting:"}</span> {player.batSide}</p>
+                      <p><span className="font-semibold">{translatedText.pitching || "Pitching:"}</span> {player.pitchHand}</p>
                       <p className="col-span-2">
-                        <span className="font-semibold">From:</span> {player.birthCity}, {player.birthCountry}
+                        <span className="font-semibold">{translatedText.from || "From:"}</span> {player.birthCity}, {player.birthCountry}
                       </p>
                       {player.nickName && (
                         <p className="col-span-2">
-                          <span className="font-semibold">Nickname:</span> {player.nickName}
+                          <span className="font-semibold">{translatedText.nickname || "Nickname:"}</span> {player.nickName}
                         </p>
                       )}
                       {player.strikeZoneTop && player.strikeZoneBottom && (
                         <p className="col-span-2">
-                          <span className="font-semibold">Strike Zone:</span> {player.strikeZoneBottom.toFixed(2)} - {player.strikeZoneTop.toFixed(2)}
+                          <span className="font-semibold">{translatedText.strikeZone || "Strike Zone:"}</span> {player.strikeZoneBottom.toFixed(2)} - {player.strikeZoneTop.toFixed(2)}
                         </p>
                       )}
                     </div>
                   </div>
                   <button onClick={() => handleRemovePlayer(player.id)} className="bg-red-500 text-white px-4 py-1 rounded hover:bg-red-600 transition duration-200 text-sm">
-                    Remove
+                    {translatedText.remove || "Remove"}
                   </button>
                 </div>
               </div>
@@ -222,7 +279,7 @@ const PlayerSelector = () => {
           </div>
         ) : (
           <p className="text-gray-500 text-center py-8 bg-gray-50 rounded-lg">
-            No players selected. Add players using their MLB ID.
+            {translatedText.noPlayers || "No players selected. Add players using their MLB ID."}
           </p>
         )}
       </div>
