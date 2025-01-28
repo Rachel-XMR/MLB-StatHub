@@ -2,10 +2,11 @@ import React, {useEffect, useState} from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronDown, UserCircle, KeyRound, LogOut, Eye, EyeOff } from 'lucide-react';
 import { fetchProtectedData } from './api';
+import translateText from './translationServer'
 
 const PWD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,24}$/;
 
-const Logout = () => {
+const Logout = ({ language }) => {
   const navigate = useNavigate();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isPasswordChangeOpen, setIsPasswordChangeOpen] = useState(false);
@@ -21,6 +22,7 @@ const Logout = () => {
     confirmPassword: false
   });
   const [passwordError, setPasswordError] = useState('');
+  const [translatedText, setTranslatedText] = useState([]);
 
   useEffect(() => {
     const fetchUsername = async () => {
@@ -116,6 +118,32 @@ const Logout = () => {
     setPasswordError('');
   };
 
+  const translateContent = async () => {
+    try {
+      const translations = await Promise.all([
+        translateText("Change Password", language),
+        translateText("Logout", language),
+        translateText("Current Password", language),
+        translateText("New Password", language),
+        translateText("Confirm New Password", language),
+      ]);
+
+      setTranslatedText({
+        change_password: translations[0],
+        logout: translations[1],
+        current_password: translations[2],
+        new_password: translations[3],
+        confirm_password: translations[4],
+      });
+    } catch (error) {
+      console.error('Translation error:', error);
+    }
+  };
+
+  useEffect(() => {
+    translateContent();
+  }, [language]);
+
   return (
     <div className="relative">
       <div
@@ -141,7 +169,7 @@ const Logout = () => {
               className="flex items-center w-full px-4 py-2 text-left hover:bg-gray-100 transition duration-200"
             >
               <KeyRound className="mr-2 text-blue-500" size={20} />
-              Change Password
+              {translatedText.change_password || "Change Password"}
             </button>
 
             {isPasswordChangeOpen && (
@@ -151,7 +179,7 @@ const Logout = () => {
                     <input
                       type={passwordVisibility.current_password ? "text" : "password"}
                       name="current_password"
-                      placeholder="Current Password"
+                      placeholder={translatedText.current_password || "Current Password"}
                       value={passwordFields.current_password}
                       onChange={handleInputChange}
                       className="w-full p-2 border rounded pr-10"
@@ -170,7 +198,7 @@ const Logout = () => {
                     <input
                       type={passwordVisibility.new_password ? "text" : "password"}
                       name="new_password"
-                      placeholder="New Password"
+                      placeholder={translatedText.new_password || "New Password"}
                       value={passwordFields.new_password}
                       onChange={handleInputChange}
                       className="w-full p-2 border rounded pr-10"
@@ -189,7 +217,7 @@ const Logout = () => {
                     <input
                       type={passwordVisibility.confirm_password ? "text" : "password"}
                       name="confirm_password"
-                      placeholder="Confirm New Password"
+                      placeholder={translatedText.confirm_password || "Confirm New Password"}
                       value={passwordFields.confirm_password}
                       onChange={handleInputChange}
                       className="w-full p-2 border rounded pr-10"
@@ -208,14 +236,14 @@ const Logout = () => {
                 )}
 
                 <button onClick={handlePasswordChange} className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600 transition">
-                  Change Password
+                  {translatedText.change_password || "Change Password"}
                 </button>
               </div>
             )}
 
             <button onClick={handleLogout} className="flex items-center w-full px-4 py-2 text-left hover:bg-red-50 text-red-600 hover:text-red-700 transition duration-200">
               <LogOut className="mr-2" size={20} />
-              Logout
+              {translatedText.logout || "Logout"}
             </button>
           </div>
         </div>
