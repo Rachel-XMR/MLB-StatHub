@@ -34,7 +34,7 @@ const Dashboard = () => {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">{translatedContent}</h1>
         <LanguageSelector onLanguageChange={handleLanguageChange} />
-        <Logout />
+        <Logout language={language}/>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="md:col-span-1">
