@@ -467,6 +467,75 @@ def change_password():
         return jsonify({"error": str(e)}), 500
 
 
+def get_team_for_player(player_id):
+    """Finds the team a player plays for (using roster search)."""
+    teams_endpoint_url = 'https://statsapi.mlb.com/api/v1/teams?sportId=1'
+    try:
+        teams_response = requests.get(teams_endpoint_url)
+        teams_response.raise_for_status()
+        teams_data = teams_response.json()
+        teams = teams_data.get("teams", [])
+
+        for team in teams:
+            team_id = team["id"]
+            roster_url = f'https://statsapi.mlb.com/api/v1/teams/{team_id}/roster?season={datetime.now().year}'
+            roster_response = requests.get(roster_url)
+            roster_response.raise_for_status()
+            roster_data = roster_response.json()
+            roster = roster_data.get("roster", [])
+
+            for player_entry in roster:
+                roster_player_id = player_entry.get("person", {}).get("id")
+                if roster_player_id == player_id:
+                    return team["name"], team_id
+
+        return None, None  # Player not found
+
+    except requests.exceptions.RequestException as e:
+        print(f"Error fetching team/roster: {e}")
+        return None, None
+
+
+@app.route("/user/players/teams", methods=["GET"])
+def get_user_player_teams():
+    """Get the teams based on player id from the database"""
+    token = request.headers.get("Authorization", "").split("Bearer ")[-1].strip()
+    if not token:
+        return jsonify({"error": "Missing token"}), 401
+
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+        user_id = payload["user_id"]
+
+        cur = connection.cursor()
+        select_query = """
+            SELECT unnest(player_id) as player_id
+            FROM user_data 
+            WHERE id = %s
+            ORDER BY added_at DESC;
+        """
+        cur.execute(select_query, (user_id,))
+        player_ids = [row[0] for row in cur.fetchall()]
+        cur.close()
+
+        player_teams = {}
+        for player_id in player_ids:
+            team_name, team_id = get_team_for_player(player_id)  #
+            if team_name:
+                player_teams[player_id] = {"teamName": team_name, "teamId": team_id}
+            else:
+                player_teams[player_id] = {"teamName": "Team not found"}
+
+        return jsonify(player_teams), 200
+
+    except jwt.ExpiredSignatureError:
+        return jsonify({"error": "Token has expired"}), 401
+    except jwt.InvalidTokenError:
+        return jsonify({"error": "Invalid token"}), 401
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 @app.route("/")
 def home():
     return jsonify({"message": "Welcome to the MLB Server API"})
