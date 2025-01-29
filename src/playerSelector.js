@@ -28,6 +28,8 @@ const PlayerSelector = ({ language }) => {
   const [playerImages, setPlayerImages] = useState({});
   const [translatedText, setTranslatedText] = useState({});
   const [imagesLoaded, setImagesLoaded] = useState(false);
+  const [playerTeams, setPlayerTeams] = useState({});
+  const [teamsLoaded, setTeamsLoaded] = useState(false)
 
   const getToken = () => {
     const token = localStorage.getItem('authToken');
@@ -41,6 +43,7 @@ const PlayerSelector = ({ language }) => {
       const players = await fetchProtectedData('http://127.0.0.1:5000/user/players');
       setSelectedPlayers(players);
       await fetchPlayerImages();
+      await fetchPlayerTeams();
     } catch (err) {
       if (err.response && err.response.status === 401) {
         localStorage.removeItem('authToken');
@@ -144,6 +147,16 @@ const PlayerSelector = ({ language }) => {
     }
   };
 
+  const fetchPlayerTeams = async () => {
+    try {
+      const teams = await fetchProtectedData('http://127.0.0.1:5000/user/players/teams');
+      setPlayerTeams(teams);
+      setTeamsLoaded(true)
+    } catch (error) {
+      console.error("Failed to fetch player teams:", error);
+    }
+  };
+
   const translateContent = async () => {
     try {
       const translations = await Promise.all([ // Translate all texts concurrently for efficiency
@@ -162,7 +175,8 @@ const PlayerSelector = ({ language }) => {
         translateText("Nickname:", language),
         translateText("Strike Zone:", language),
         translateText("No players selected. Add players using their MLB ID.", language),
-        translateText("Remove", language)
+        translateText("Remove", language),
+        translateText("Team", language)
       ]);
 
       setTranslatedText({
@@ -182,6 +196,7 @@ const PlayerSelector = ({ language }) => {
         strikeZone: translations[13],
         noPlayers: translations[14],
         remove: translations[15],
+        team: translations[16],
       });
     } catch (error) {
       console.error('Translation error:', error);
@@ -246,6 +261,11 @@ const PlayerSelector = ({ language }) => {
                       <h4 className="text-lg font-bold text-blue-900">{player.fullName}</h4>
                       <span className="text-sm text-gray-500">#{player.id}</span>
                     </div>
+                    {playerTeams[player.id] && teamsLoaded && (
+                      <p className="text-sm text-gray-700">
+                        <span className="font-semibold">{translatedText.team || "Team:"}</span> {playerTeams[player.id].teamName}
+                      </p>
+                    )}
                     <div className="grid grid-cols-2 gap-x-8 gap-y-2 text-sm">
                       <p><span className="font-semibold">{translatedText.position || "Position:"}</span> {player.primaryPosition}</p>
                       <p><span className="font-semibold">{translatedText.number || "Number:"}</span> #{player.primaryNumber}</p>
