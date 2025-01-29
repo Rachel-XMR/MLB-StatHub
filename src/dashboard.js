@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import PlayerSelector from './playerSelector';
 import Logout from './Logout';
-import liveFeed from './livefeed';
+import LiveFeed from './livefeed';
 import translateText from './translationServer';
 import LanguageSelector from './languageSelector';
 
@@ -41,7 +41,7 @@ const Dashboard = () => {
           <PlayerSelector language={language} />
         </div>
         <div className="md:col-span-1">
-          <liveFeed language={language}/>
+          <LiveFeed language={language}/>
         </div>
       </div>
     </div>
