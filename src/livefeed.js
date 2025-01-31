@@ -1,7 +1,7 @@
 import react, {useState} from 'react';
 
-const liveFeed = () => {
+const LiveFeed = () => {
 
 }
 
-export default liveFeed
+export default LiveFeed
