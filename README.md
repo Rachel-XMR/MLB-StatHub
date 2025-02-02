@@ -1,4 +1,4 @@
-# MLB Player Highlights Application
+# Baseline
 
 ## Description
 
