@@ -2,7 +2,7 @@
 
 ## Description
 
-Baseline is a full-stack web application where users can sign up, log in, and follow their favorite MLB players. Users will receive personalized highlights of the players they follow in text, audio, or video formats. The application uses **Flask** for the backend API and **React** for the frontend UI. 
+Baseline is a full-stack web application where users can sign up, log in, and follow their favorite MLB players. Users will receive personalized highlights of the games they select in text, audio, or video formats. The application uses **Flask** for the backend API and **React** for the frontend UI. 
 
 The app supports multiple languages (English, Spanish, Japanese) and allows users to follow players, view player profiles, and manage their own preferences.
 
