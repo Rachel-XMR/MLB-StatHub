@@ -39,9 +39,9 @@ The app supports multiple languages (English, Spanish, Japanese) and allows user
 
 ---
 
-## Google Cloud x MLB Hackathon API Integration
+## Google Cloud x MLB API Integration
 
-This application uses data from the **Google Cloud x MLB Hackathon** API, which provides live MLB game data and player statistics.
+This application uses data from the **Google Cloud x MLB** API, which provides live MLB game data and player statistics.
 
 ### MLB StatsAPI
 To access live MLB data, the project integrates the **MLB StatsAPI**. Here's how to use it:
