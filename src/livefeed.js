@@ -48,6 +48,7 @@ const LiveFeed = ({ language, onLoad }) => {
 
   // Fetch live feed data for a specific game
   const fetchLiveFeed = async (gamePk) => {
+
     try {
       const response = await fetch(
         `https://statsapi.mlb.com/api/v1.1/game/${gamePk}/feed/live`
@@ -65,8 +66,7 @@ const LiveFeed = ({ language, onLoad }) => {
       setLiveFeedData(data);
       await translateDynamicContent(data);
     } catch (err) {
-      setError('Failed to fetch live feed');
-      console.error('Error fetching live feed:', err);
+      setError('No live feed data available.');
     } finally {
       if (onLoad) {
         onLoad();
