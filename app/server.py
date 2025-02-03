@@ -536,6 +536,74 @@ def get_user_player_teams():
         return jsonify({"error": str(e)}), 500
 
 
+@app.route('/user/preference', methods=['POST'])
+def update_preferences():
+    """Store preference (season, game_pk) to database"""
+    token = request.headers.get("Authorization", "").split("Bearer ")[-1].strip()
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+        user_id = payload["user_id"]
+
+        data = request.get_json()
+
+        if not data or not data.get('game_pk'):
+            return jsonify({"error": "Missing game_pk in request body"}), 400
+
+        game_pk = data['game_pk']
+
+        cur = connection.cursor()
+        cur.execute("""
+            UPDATE user_data 
+            SET game_pk = %s
+            WHERE id = %s;
+        """, (game_pk, user_id))
+        connection.commit()
+
+        connection.rollback()
+
+        cur.close()
+
+        return jsonify({"message": "Preferences updated successfully"}), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    except jwt.ExpiredSignatureError:
+        return jsonify({"error": "Token has expired"}), 401
+    except jwt.InvalidTokenError:
+        return jsonify({"error": "Invalid token"}), 401
+
+
+@app.route('/user/preference', methods=['GET'])
+def obtain_preferences():
+    """Fetch the preferences"""
+    token = request.headers.get("Authorization", "").split("Bearer ")[-1].strip()
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+        user_id = payload["user_id"]
+
+        cur = connection.cursor()
+        cur.execute("""
+            SELECT game_pk
+            FROM user_data
+            WHERE id = %s;
+        """, (user_id,))
+        result = cur.fetchone()
+        cur.close()
+
+        if result:
+            game_pk = result
+            return jsonify({"game_pk": game_pk})
+        else:
+            return jsonify({"game_pk": None})
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    except jwt.ExpiredSignatureError:
+        return jsonify({"error": "Token has expired"}), 401
+    except jwt.InvalidTokenError:
+        return jsonify({"error": "Invalid token"}), 401
+
+
 @app.route("/")
 def home():
     return jsonify({"message": "Welcome to the MLB Server API"})
