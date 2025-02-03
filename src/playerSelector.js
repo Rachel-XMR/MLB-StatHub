@@ -20,7 +20,7 @@ const searchPlayerInDBbyID = async (id) => {
 };
 
 
-const PlayerSelector = ({ language }) => {
+const PlayerSelector = ({ language, onLoad }) => {
   const [selectedPlayers, setSelectedPlayers] = useState([]);
   const [playerId, setPlayerId] = useState("");
   const [loading, setLoading] = useState(true);
@@ -54,6 +54,9 @@ const PlayerSelector = ({ language }) => {
       console.error('Error:', err);
     } finally {
       setLoading(false);
+      if (onLoad) {
+        onLoad();
+      }
     }
   };
 
@@ -217,11 +220,13 @@ const PlayerSelector = ({ language }) => {
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-lg p-6 max-w-2xl mx-auto">
-      <h2 className="text-2xl font-bold text-blue-800 mb-6">{translatedText.mlb_selector || "MLB Player Selector"}</h2>
+    <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl shadow-2xl p-8 max-w-4xl mx-auto backdrop-blur-lg">
+      <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent mb-8">
+        {translatedText.mlb_selector || "MLB Player Selector"}
+      </h2>
 
       {error && (
-        <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-lg">
+        <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl backdrop-blur-sm">
           {error}
         </div>
       )}
@@ -232,65 +237,83 @@ const PlayerSelector = ({ language }) => {
           value={playerId}
           onChange={(e) => setPlayerId(e.target.value)}
           placeholder="Enter 6-digit Player ID"
-          className="flex-1 px-4 py-2 border-2 border-blue-300 rounded-lg focus:border-blue-500 focus:outline-none"
+          className="flex-1 px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-slate-200 placeholder-slate-500"
         />
         <button
           onClick={handleAddPlayer}
-          className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition duration-200"
+          className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white px-6 py-3 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl"
         >
           {translatedText.addPlayerButton || "Add Player"}
         </button>
       </div>
 
       <div>
-        <h3 className="text-xl font-semibold text-gray-700 mb-4">{translatedText.selected_players || "Selected Players"}</h3>
+        <h3 className="text-xl font-semibold text-slate-200 mb-6">
+          {translatedText.selected_players || "Selected Players"}
+        </h3>
         {selectedPlayers.length > 0 ? (
-          <div className="space-y-4">
+          <div className="space-y-6">
             {selectedPlayers.map((player) => (
-              <div key={player.id} className="bg-gray-50 rounded-lg p-4 border-l-4 border-blue-500 hover:shadow-md transition duration-200">
-                <div className="flex justify-between items-start">
-                  {playerImages[player.id] && imagesLoaded &&(
-                    <img
-                      src={playerImages[player.id]}
-                      alt={`${player.fullName} headshot`}
-                      className="w-24 h-24 rounded-full object-cover mr-4"
-                    />
+              <div key={player.id} className="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50 hover:border-blue-500/30 transition-all duration-300 backdrop-blur-sm">
+                <div className="flex justify-between items-start gap-6">
+                  {playerImages[player.id] && imagesLoaded && (
+                    <div className="relative">
+                      <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-full"></div>
+                      <img
+                        src={playerImages[player.id]}
+                        alt={`${player.fullName} headshot`}
+                        className="w-24 h-24 rounded-full object-cover relative z-10"
+                      />
+                    </div>
                   )}
-                  <div className="flex-1 space-y-2">
+                  <div className="flex-1 space-y-4">
                     <div className="flex items-center gap-2">
-                      <h4 className="text-lg font-bold text-blue-900">{player.fullName}</h4>
-                      <span className="text-sm text-gray-500">#{player.id}</span>
+                      <h4 className="text-lg font-bold text-slate-200">{player.fullName}</h4>
+                      <span className="text-sm text-blue-400">#{player.id}</span>
                     </div>
                     {playerTeams[player.id] && teamsLoaded && (
-                      <p className="text-sm text-gray-700">
-                        <span className="font-semibold">{translatedText.team || "Team:"}</span> {playerTeams[player.id].teamName}
+                      <p className="text-sm text-slate-300">
+                        <span className="font-semibold text-blue-400">{translatedText.team || "Team:"}</span>{" "}
+                        {playerTeams[player.id].teamName}
                       </p>
                     )}
-                    <div className="grid grid-cols-2 gap-x-8 gap-y-2 text-sm">
-                      <p><span className="font-semibold">{translatedText.position || "Position:"}</span> {player.primaryPosition}</p>
-                      <p><span className="font-semibold">{translatedText.number || "Number:"}</span> #{player.primaryNumber}</p>
-                      <p><span className="font-semibold">{translatedText.debutDate || "Debut Date:"}</span> {player.mlbDebutDate}</p>
-                      <p><span className="font-semibold">{translatedText.age || "Age:"}</span> {player.currentAge}</p>
-                      <p><span className="font-semibold">{translatedText.height || "Height:"}</span> {player.height}</p>
-                      <p><span className="font-semibold">{translatedText.weight || "Weight:"}</span> {player.weight} lbs</p>
-                      <p><span className="font-semibold">{translatedText.batting || "Batting:"}</span> {player.batSide}</p>
-                      <p><span className="font-semibold">{translatedText.pitching || "Pitching:"}</span> {player.pitchHand}</p>
-                      <p className="col-span-2">
-                        <span className="font-semibold">{translatedText.from || "From:"}</span> {player.birthCity}, {player.birthCountry}
+                    <div className="grid grid-cols-2 gap-x-8 gap-y-3 text-sm">
+                      {[
+                        { label: translatedText.position || "Position:", value: player.primaryPosition },
+                        { label: translatedText.number || "Number:", value: `#${player.primaryNumber}` },
+                        { label: translatedText.debutDate || "Debut Date:", value: player.mlbDebutDate },
+                        { label: translatedText.age || "Age:", value: player.currentAge },
+                        { label: translatedText.height || "Height:", value: player.height },
+                        { label: translatedText.weight || "Weight:", value: `${player.weight} lbs` },
+                        { label: translatedText.batting || "Batting:", value: player.batSide },
+                        { label: translatedText.pitching || "Pitching:", value: player.pitchHand }
+                      ].map(({ label, value }) => (
+                        <p key={label} className="text-slate-300">
+                          <span className="font-semibold text-blue-400">{label}</span> {value}
+                        </p>
+                      ))}
+                      <p className="col-span-2 text-slate-300">
+                        <span className="font-semibold text-blue-400">{translatedText.from || "From:"}</span>{" "}
+                        {player.birthCity}, {player.birthCountry}
                       </p>
                       {player.nickName && (
-                        <p className="col-span-2">
-                          <span className="font-semibold">{translatedText.nickname || "Nickname:"}</span> {player.nickName}
+                        <p className="col-span-2 text-slate-300">
+                          <span className="font-semibold text-blue-400">{translatedText.nickname || "Nickname:"}</span>{" "}
+                          {player.nickName}
                         </p>
                       )}
                       {player.strikeZoneTop && player.strikeZoneBottom && (
-                        <p className="col-span-2">
-                          <span className="font-semibold">{translatedText.strikeZone || "Strike Zone:"}</span> {player.strikeZoneBottom.toFixed(2)} - {player.strikeZoneTop.toFixed(2)}
+                        <p className="col-span-2 text-slate-300">
+                          <span className="font-semibold text-blue-400">{translatedText.strikeZone || "Strike Zone:"}</span>{" "}
+                          {player.strikeZoneBottom.toFixed(2)} - {player.strikeZoneTop.toFixed(2)}
                         </p>
                       )}
                     </div>
                   </div>
-                  <button onClick={() => handleRemovePlayer(player.id)} className="bg-red-500 text-white px-4 py-1 rounded hover:bg-red-600 transition duration-200 text-sm">
+                  <button
+                    onClick={() => handleRemovePlayer(player.id)}
+                    className="bg-red-500/10 hover:bg-red-500/20 text-red-400 px-4 py-2 rounded-lg transition-all duration-300 text-sm border border-red-500/20 hover:border-red-500/30"
+                  >
                     {translatedText.remove || "Remove"}
                   </button>
                 </div>
@@ -298,9 +321,9 @@ const PlayerSelector = ({ language }) => {
             ))}
           </div>
         ) : (
-          <p className="text-gray-500 text-center py-8 bg-gray-50 rounded-lg">
+          <div className="text-slate-400 text-center py-8 bg-slate-800/50 rounded-xl border border-slate-700/50 backdrop-blur-sm">
             {translatedText.noPlayers || "No players selected. Add players using their MLB ID."}
-          </p>
+          </div>
         )}
       </div>
     </div>
