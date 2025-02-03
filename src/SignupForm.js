@@ -247,14 +247,15 @@ const SignupForm = () => {
   // Success message
   if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100 p-6">
-        <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md text-center">
-          <FaCheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-green-600 mb-4">Success!</h1>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-6">
+        <div className="bg-white/80 backdrop-blur-lg p-8 rounded-2xl shadow-2xl w-full max-w-md text-center border border-white/20">
+          <FaCheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4"/>
+          <h1 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-green-500 to-emerald-500 mb-4">
+            Success!
+          </h1>
           <p className="text-gray-600 mb-4">Your account has been created successfully.</p>
-          <Link to="/login"
-            className="text-blue-500 hover:underline font-medium"
-          >
+
+          <Link to="/login" className="font-semibold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 hover:opacity-80 transition-opacity duration-200">
             Login
           </Link>
         </div>

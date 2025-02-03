@@ -66,7 +66,7 @@ const LoginForm = () => {
 
   // Handle form input
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
+    const {name, value} = e.target;
     setFormData(prev => ({
       ...prev,
       [name]: value
@@ -109,20 +109,20 @@ const LoginForm = () => {
     setIsSubmitting(true);
     try {
       const response = await axios.post('http://localhost:5000/user/login',
-        {
-          email: formData.email,
-          password: formData.password
-        },
-        {
-          headers: { 'Content-Type': 'application/json' },
-          withCredentials: true,
-          timeout: 5000
-        }
-    );
+          {
+            email: formData.email,
+            password: formData.password
+          },
+          {
+            headers: {'Content-Type': 'application/json'},
+            withCredentials: true,
+            timeout: 5000
+          }
+      );
 
 
       if (response.status === 200) {
-        const { token } = response.data;
+        const {token} = response.data;
 
         // Store the JWT token in localStorage
         localStorage.setItem("authToken", token);
@@ -155,85 +155,87 @@ const LoginForm = () => {
 
   // Rendering input fields
   const renderInputField = (
-    name,
-    label,
-    type = 'text',
-    autoComplete = 'off',
-    isPassword = false
+      name,
+      label,
+      type = 'text',
+      autoComplete = 'off',
+      isPassword = false
   ) => {
     const isValid = validations[name];
     const showError = touched[name] && !isValid && formData[name];
 
     return (
-      <div>
-        <label htmlFor={name} className="block text-sm font-medium text-gray-700">
-          {label}
-        </label>
-        <div className="relative mt-1">
-          <input
-            type={isPassword ? (showPassword[name] ? 'text' : 'password') : type}
-            id={name}
-            name={name}
-            ref={name === 'email' ? userRef : null}
-            autoComplete={autoComplete}
-            value={formData[name]}
-            onChange={handleInputChange}
-            onBlur={() => handleBlur(name)}
-            required
-            aria-invalid={!isValid ? "true" : "false"}
-            aria-describedby={`${name}Note`}
-            className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 
+        <div>
+          <label htmlFor={name} className="block text-sm font-medium text-gray-700">
+            {label}
+          </label>
+          <div className="relative mt-1">
+            <input
+                type={isPassword ? (showPassword[name] ? 'text' : 'password') : type}
+                id={name}
+                name={name}
+                ref={name === 'email' ? userRef : null}
+                autoComplete={autoComplete}
+                value={formData[name]}
+                onChange={handleInputChange}
+                onBlur={() => handleBlur(name)}
+                required
+                aria-invalid={!isValid ? "true" : "false"}
+                aria-describedby={`${name}Note`}
+                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 
               ${showError ? 'border-red-500' : formData[name] && isValid ? 'border-green-500' : 'border-gray-300'}
               ${isPassword ? 'pr-20' : 'pr-10'}`}
-            disabled={isSubmitting}
-          />
+                disabled={isSubmitting}
+            />
 
-          <div className="absolute inset-y-0 right-0 flex items-center">
-            {isPassword && (
-              <button
-                type="button"
-                onClick={() => togglePasswordVisibility(name)}
-                className="p-1 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-md"
-                tabIndex="-1"
-              >
-                {showPassword[name] ? (
-                  <FaEyeSlash className="h-5 w-5 text-gray-400" />
-                ) : (
-                  <FaEye className="h-5 w-5 text-gray-400" />
-                )}
-              </button>
-            )}
+            <div className="absolute inset-y-0 right-0 flex items-center">
+              {isPassword && (
+                  <button
+                      type="button"
+                      onClick={() => togglePasswordVisibility(name)}
+                      className="p-1 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-md"
+                      tabIndex="-1"
+                  >
+                    {showPassword[name] ? (
+                        <FaEyeSlash className="h-5 w-5 text-gray-400"/>
+                    ) : (
+                        <FaEye className="h-5 w-5 text-gray-400"/>
+                    )}
+                  </button>
+              )}
 
-            {formData[name] && (
-              <span className="pl-2 pr-3">
+              {formData[name] && (
+                  <span className="pl-2 pr-3">
                 {isValid ? (
-                  <FaCheckCircle className="h-5 w-5 text-green-500" />
+                    <FaCheckCircle className="h-5 w-5 text-green-500"/>
                 ) : (
-                  <FaTimesCircle className="h-5 w-5 text-red-500" />
+                    <FaTimesCircle className="h-5 w-5 text-red-500"/>
                 )}
               </span>
-            )}
+              )}
+            </div>
           </div>
+          {showError && (
+              <p className="mt-1 text-sm text-red-600" id={`${name}Note`}>
+                {VALIDATION_MESSAGES[name]}
+              </p>
+          )}
         </div>
-        {showError && (
-          <p className="mt-1 text-sm text-red-600" id={`${name}Note`}>
-            {VALIDATION_MESSAGES[name]}
-          </p>
-        )}
-      </div>
     );
   };
 
   // Success message
   if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100 p-6">
-        <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md text-center">
-          <FaCheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-green-600 mb-4">Success!</h1>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-6">
+        <div className="bg-white/80 backdrop-blur-lg p-8 rounded-2xl shadow-2xl w-full max-w-md text-center border border-white/20">
+          <FaCheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4"/>
+          <h1 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-green-500 to-emerald-500 mb-4">
+            Success!
+          </h1>
           <p className="text-gray-600 mb-4">You have successfully logged in.</p>
 
-          <Link to="/dashboard" className="text-blue-500 hover:underline font-medium">
+          <Link to="/dashboard" className="font-semibold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 hover:opacity-80 transition-opacity duration-200">
             Go to Home
           </Link>
         </div>
@@ -243,45 +245,45 @@ const LoginForm = () => {
 
   // Form layout
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-6">
-      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-        {errMsg && (
-          <div
-            ref={errRef}
-            className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4"
-            role="alert"
-          >
-            <span className="block sm:inline">{errMsg}</span>
-          </div>
-        )}
+      <div className="min-h-screen flex items-center justify-center bg-gray-100 p-6">
+        <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+          {errMsg && (
+              <div
+                  ref={errRef}
+                  className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4"
+                  role="alert"
+              >
+                <span className="block sm:inline">{errMsg}</span>
+              </div>
+          )}
 
-        <h1 className="text-2xl font-bold mb-6 text-gray-800">Login</h1>
+          <h1 className="text-2xl font-bold mb-6 text-gray-800">Login</h1>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {renderInputField('email', 'Email', 'email', 'email')}
-          {renderInputField('password', 'Password', 'password', 'current-password', true)}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {renderInputField('email', 'Email', 'email', 'email')}
+            {renderInputField('password', 'Password', 'password', 'current-password', true)}
 
-          <button
-            type="submit"
-            disabled={!Object.values(validations).every(Boolean) || isSubmitting}
-            className={`w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white 
+            <button
+                type="submit"
+                disabled={!Object.values(validations).every(Boolean) || isSubmitting}
+                className={`w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white 
               ${(!Object.values(validations).every(Boolean) || isSubmitting)
-                ? 'bg-gray-300 cursor-not-allowed'
-                : 'bg-blue-500 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
-              }`}
-          >
-            {isSubmitting ? 'Signing in...' : 'Sign In'}
-          </button>
-        </form>
+                    ? 'bg-gray-300 cursor-not-allowed'
+                    : 'bg-blue-500 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
+                }`}
+            >
+              {isSubmitting ? 'Signing in...' : 'Sign In'}
+            </button>
+          </form>
 
-        <p className="mt-4 text-sm text-gray-600 text-center">
-          Don't have an account?{' '}
-          <Link to="/" className="text-blue-500 hover:underline">
-            Sign Up
-          </Link>
-        </p>
+          <p className="mt-4 text-sm text-gray-600 text-center">
+            Don't have an account?{' '}
+            <Link to="/" className="text-blue-500 hover:underline">
+              Sign Up
+            </Link>
+          </p>
+        </div>
       </div>
-    </div>
   );
 };
 
