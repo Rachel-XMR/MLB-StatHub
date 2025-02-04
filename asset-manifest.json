@@ -1,13 +1,13 @@
 {
   "files": {
-    "main.css": "/static/css/main.d59d3599.css",
-    "main.js": "/static/js/main.4a67cbcb.js",
-    "index.html": "/index.html",
-    "main.d59d3599.css.map": "/static/css/main.d59d3599.css.map",
-    "main.4a67cbcb.js.map": "/static/js/main.4a67cbcb.js.map"
+    "main.css": "/MLB-StatHub/static/css/main.d59d3599.css",
+    "main.js": "/MLB-StatHub/static/js/main.8952e933.js",
+    "index.html": "/MLB-StatHub/index.html",
+    "main.d59d3599.css.map": "/MLB-StatHub/static/css/main.d59d3599.css.map",
+    "main.8952e933.js.map": "/MLB-StatHub/static/js/main.8952e933.js.map"
   },
   "entrypoints": [
     "static/css/main.d59d3599.css",
-    "static/js/main.4a67cbcb.js"
+    "static/js/main.8952e933.js"
   ]
 }
