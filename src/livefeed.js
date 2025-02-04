@@ -2,11 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { fetchProtectedData } from './api';
 import translateText from './translationServer';
 
-{/*
-  To-do:
-  - Add live audio and video to live feed instead of just the scoreboard
-*/}
-
 const LiveFeed = ({ language, onLoad }) => {
   const [selectedGame, setSelectedGame] = useState('');
   const [games, setGames] = useState([]);
