@@ -2,6 +2,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { FaCheckCircle, FaTimesCircle, FaEye, FaEyeSlash } from 'react-icons/fa';
 import axios from 'axios';
+import AppDescription from './AppDescription'
 
 // Validation patterns
 const USER_REGEX = /^[a-zA-Z][a-zA-Z0-9-_]{3,23}$/;
@@ -262,51 +263,54 @@ const SignupForm = () => {
   // Form layout
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 to-gray-800 p-6">
-      <div className="bg-gray-800/80 backdrop-blur-lg p-8 rounded-3xl shadow-2xl w-full max-w-md border border-gray-700 relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-purple-500"></div>
-        {errMsg && (
-          <div
-            ref={errRef}
-            className="bg-red-900/30 border border-red-500 text-red-300 px-4 py-3 rounded-lg relative mb-4"
-            role="alert"
-          >
-            <span className="block sm:inline">{errMsg}</span>
-          </div>
-        )}
+      <div className="w-full max-w-4xl">
+        <AppDescription />
+        <div className="bg-gray-800/80 backdrop-blur-lg p-8 rounded-3xl shadow-2xl border border-gray-700 relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-purple-500"></div>
+          {errMsg && (
+            <div
+              ref={errRef}
+              className="bg-red-900/30 border border-red-500 text-red-300 px-4 py-3 rounded-lg relative mb-4"
+              role="alert"
+            >
+              <span className="block sm:inline">{errMsg}</span>
+            </div>
+          )}
 
-        <h1 className="text-2xl font-bold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">
-          Create Account
-        </h1>
+          <h1 className="text-2xl font-bold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">
+            Create Account
+          </h1>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {renderInputField("username", "Username")}
-          {renderInputField("email", "Email", "email")}
-          {renderInputField("password", "Password", "password", "new-password", true)}
-          {renderInputField("confirmPassword", "Confirm Password", "password", "new-password", true)}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {renderInputField("username", "Username")}
+            {renderInputField("email", "Email", "email")}
+            {renderInputField("password", "Password", "password", "new-password", true)}
+            {renderInputField("confirmPassword", "Confirm Password", "password", "new-password", true)}
 
-          <button
-            type="submit"
-            disabled={!Object.values(validations).every(Boolean) || isSubmitting}
-            className={`w-full py-2 px-4 rounded-md text-sm font-medium transition-all duration-300 
-              ${
-                !Object.values(validations).every(Boolean) || isSubmitting
-                  ? "bg-gray-700 text-gray-500 cursor-not-allowed"
-                  : "bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:opacity-90"
-              }`}
-          >
-            {isSubmitting ? "Signing up..." : "Sign Up"}
-          </button>
-        </form>
+            <button
+              type="submit"
+              disabled={!Object.values(validations).every(Boolean) || isSubmitting}
+              className={`w-full py-2 px-4 rounded-md text-sm font-medium transition-all duration-300 
+                ${
+                  !Object.values(validations).every(Boolean) || isSubmitting
+                    ? "bg-gray-700 text-gray-500 cursor-not-allowed"
+                    : "bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:opacity-90"
+                }`}
+            >
+              {isSubmitting ? "Signing up..." : "Sign Up"}
+            </button>
+          </form>
 
-        <p className="mt-4 text-sm text-gray-600 text-center">
-          Already have an account?{" "}
-          <Link to="/login" className="text-blue-400 hover:text-blue-300 transition-colors duration-200">
-            Login
-          </Link>
-        </p>
+          <p className="mt-4 text-sm text-gray-600 text-center">
+            Already have an account?{" "}
+            <Link to="/login" className="text-blue-400 hover:text-blue-300 transition-colors duration-200">
+              Login
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
-  );
+  )
 };
 
 export default SignupForm;
