@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/MLB-StatHub/public/static/css/main.d59d3599.css",
+    "main.js": "/MLB-StatHub/public/static/js/main.4a67cbcb.js",
+    "index.html": "/MLB-StatHub/public/index.html",
+    "main.d59d3599.css.map": "/MLB-StatHub/public/static/css/main.d59d3599.css.map",
+    "main.4a67cbcb.js.map": "/MLB-StatHub/public/static/js/main.4a67cbcb.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.d59d3599.css",
+    "static/js/main.4a67cbcb.js"
+  ]
+}
