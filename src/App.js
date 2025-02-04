@@ -2,7 +2,7 @@ import React from "react";
 import SignupForm from "./SignupForm";
 import LoginForm from './LoginForm';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import Dashboard from "./Dashboard";
+import Dashboard from "./dashboard";
 
 function App() {
   return (
