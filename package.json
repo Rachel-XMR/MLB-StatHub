@@ -1,5 +1,5 @@
 {
-  "homepage": "https://wilsonz347.github.io/MLB-StatHub",
+  "homepage": "https://Rachel-XMR.github.io/MLB-StatHub",
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
@@ -26,7 +26,7 @@
   },
   "scripts": {
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d build -b gh-pages",
+    "deploy": "gh-pages -d build",
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
