@@ -74,7 +74,7 @@ Before running the project, ensure you have the following installed:
 
 1. Clone the repository to your local machine:
    ```bash
-   git clone git@github.com:Rachel-XMR/Google-Cloud-x-MLB-Project.git
+   git clone git@github.com:Rachel-XMR/MLB-StatHub.git
    cd Google-Cloud-x-MLB-Project/app
    
 2. Install the required dependencies: 
