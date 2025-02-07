@@ -101,3 +101,7 @@ Before running the project, ensure you have the following installed:
 
 ### License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+### Future Work
+- Deploying PostgreSQL & Flask backend to Render
+- Integrating MLB content (footage & audio) with YouTube API and Vertex AI
